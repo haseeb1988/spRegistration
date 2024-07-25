@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  mysqldb_com:
+    container_name: mysqldb_com
+    image: mysql:8
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: employeedb
+      MYSQL_USER: root
+      MYSQL_PASSWORD: password
+    ports:
+      - "3307:3306"
+    networks:
+      - sp-sql-net
+
+
+  springboot_website:
+    build: ./
+    environment:
+      MYSQL_HOST: localhost
+      MYSQL_PORT: 3306
+      MYSQL_DB_NAME: employeedb
+      MYSQL_USER: root
+      MYSQL_PASSWORD: password
+    ports:
+      - "8080:8080"
+    depends_on:
+      - mysqldb_com
+    networks:
+      - sp-sql-net
+
+networks:
+  sp-sql-net:
+    driver: bridge
