@@ -1,34 +1,99 @@
+#version: '3.8'
+#
+#services:
+#  mysqldb_com:
+#    container_name: mysqldb_com
+#    image: mysql:8
+#    environment:
+#      MYSQL_ROOT_PASSWORD: password
+#      MYSQL_DATABASE: employeedb
+#      MYSQL_USER: root
+#      MYSQL_PASSWORD: password
+#    ports:
+#      - "3307:3306"
+#    networks:
+#      - sp-sql-net
+#
+#
+#  springboot_website:
+#    build: ./
+#    environment:
+#      MYSQL_HOST: localhost
+#      MYSQL_PORT: 3306
+#      MYSQL_DB_NAME: employeedb
+#      MYSQL_USER: root
+#      MYSQL_PASSWORD: password
+#    ports:
+#      - "8080:8080"
+#    depends_on:
+#      - mysqldb_com
+#    networks:
+#      - sp-sql-net
+#
+#networks:
+#  sp-sql-net:
+#    driver: bridge
+
+
 version: '3.8'
-
 services:
-  mysqldb_com:
-    container_name: mysqldb_com
-    image: mysql:8
+  mysqldb:
+    image: mysql:latest
+    container_name: mysqldb
     environment:
-      MYSQL_ROOT_PASSWORD: password
-      MYSQL_DATABASE: employeedb
-      MYSQL_USER: root
-      MYSQL_PASSWORD: password
-    ports:
-      - "3307:3306"
+      MYSQL_DATABASE : employeedb
+      MYSQL_ROOT_PASSWORD : password
+      #MYSQL_USER : root
+      #MYSQL_PASSWORD : password
     networks:
-      - sp-sql-net
+      -  sp-sql-net
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 20s
+    ports:
+      - "3303:3306"
+    #volumes:
+      # - 'C:\data\mysql_db:/var/lib/mysql/'
+
+     # - ./db_data:/var/lib/mysql
 
 
-  springboot_website:
-    build: ./
+  application:
+    #image: my-application-image
+    build:
+      context: .
+      dockerfile: Dockerfile
     environment:
-      MYSQL_HOST: localhost
-      MYSQL_PORT: 3306
-      MYSQL_DB_NAME: employeedb
+      #- SPRING_DATASOURCE_URL = jdbc:mysql://mysqldb:3306/employeedb
+      #- SPRING_DATASOURCE_USERNAME = root
+      #- SPRING_DATASOURCE_PASSWORD = password
+      #- MYSQL_ROOT_PASSWORD = password
+      #- MYSQL_HOST =  mysqldb
+      #- MYSQL_PORT = 3306
+      #- MYSQL_DB_NAME = employeedb
+      #- MYSQL_USER = root
+      #- MYSQL_PASSWORD = password
+      MYSQL_HOST: mysqldb
       MYSQL_USER: root
       MYSQL_PASSWORD: password
+      MYSQL_PORT: 3306
+
+
     ports:
       - "8080:8080"
+    restart: on-failure
     depends_on:
-      - mysqldb_com
+      - mysqldb
+
     networks:
-      - sp-sql-net
+      -  sp-sql-net
+
+
+#volumes:
+#  db_data:
 
 networks:
   sp-sql-net:
